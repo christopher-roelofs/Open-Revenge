@@ -18,9 +18,11 @@
 #include "menu.h"
 #include "pack.h"
 #include "settings.h"
+#include <SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 static void render_frame(void)
 {
@@ -29,6 +31,44 @@ static void render_frame(void)
     hud_paint(menu_current() == MENU_NONE);
     menu_paint();
     platform_present();
+}
+
+/* The data folder (font, packs, skins): --data, else the first of these
+ * holding the font.  Handheld launchers seldom start the game from its own
+ * folder, so the working directory is only one of the places tried. */
+static bool find_data_dir(char *out, size_t n, char *err, size_t errlen)
+{
+    char dirs[4][1100], cwd[1024];
+    const char *xdg = getenv("XDG_DATA_HOME"), *home = getenv("HOME");
+    char *base = SDL_GetBasePath();
+    int nd = 0, i;
+    size_t e;
+
+    if (base) {
+        snprintf(dirs[nd++], sizeof dirs[0], "%sdata", base);         /* rodent + data/ together */
+        snprintf(dirs[nd++], sizeof dirs[0], "%s../data", base);      /* build/rodent */
+        SDL_free(base);
+    }
+    if (!getcwd(cwd, sizeof cwd)) snprintf(cwd, sizeof cwd, ".");
+    snprintf(dirs[nd++], sizeof dirs[0], "%s/data", cwd);
+    if (xdg && *xdg)        snprintf(dirs[nd++], sizeof dirs[0], "%s/rodentrecomp/data", xdg);
+    else if (home && *home) snprintf(dirs[nd++], sizeof dirs[0], "%s/.local/share/rodentrecomp/data", home);
+
+    for (i = 0; i < nd; i++) {
+        char font[1200];
+        FILE *f;
+        snprintf(font, sizeof font, "%s/DejaVuSans.ttf", dirs[i]);
+        if ((f = fopen(font, "rb"))) {
+            fclose(f);
+            snprintf(out, n, "%s", dirs[i]);
+            return true;
+        }
+    }
+    e = (size_t)snprintf(err, errlen, "Cannot find the game's data folder (with DejaVuSans.ttf).\n"
+                         "Looked in these, or pass --data DIR:");
+    for (i = 0; i < nd && e < errlen; i++)
+        e += (size_t)snprintf(err + e, errlen - e, "\n  %s", dirs[i]);
+    return false;
 }
 
 static void usage(const char *argv0)
@@ -40,6 +80,9 @@ static void usage(const char *argv0)
     printf("  --game DIR      Folder with rodent.exe from Microsoft Entertainment Pack 2\n");
     printf("                  (default: next to this program, ., ./rodents_revenge,\n");
     printf("                  or ~/.local/share/rodentrecomp)\n");
+    printf("  --data DIR      The data folder (default: data/ next to this program,\n");
+    printf("                  one folder up, in the current folder, or in\n");
+    printf("                  ~/.local/share/rodentrecomp)\n");
     printf("  --pack FILE     Level pack: a file in DATA/packs or a path\n");
     printf("  --skin DIR      Replacement graphics: a folder in DATA/skins or a path,\n");
     printf("                  holding any of the PNGs --dump-assets writes\n");
@@ -66,7 +109,8 @@ int main(int argc, char *argv[])
     bool set_speed_ = false, set_level = false;
     const char *screenshot_path = NULL, *show_menu = NULL;
     const char *game_dir = NULL, *dump_dir = NULL;
-    const char *data_dir = "data";
+    const char *data_dir = NULL;
+    char data_buf[1100];
     char err[2048];
     Pack pack;
     long ticks = -1;
@@ -108,6 +152,16 @@ int main(int argc, char *argv[])
     if (set_level)  set.level = cli.level < 0 ? 0 : cli.level > 49 ? 49 : cli.level;
     if (strcmp(cli.pack, "original.pack")) snprintf(set.pack, sizeof set.pack, "%s", cli.pack);
     if (cli.skin[0]) snprintf(set.skin, sizeof set.skin, "%s", cli.skin);
+
+    if (!data_dir && !dump_dir) {
+        if (!find_data_dir(data_buf, sizeof data_buf, err, sizeof err)) {
+            fprintf(stderr, "%s\n", err);
+            if (!headless)                    /* no font, so no game window: a system box */
+                SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Rodent's Revenge", err, NULL);
+            return 1;
+        }
+        data_dir = data_buf;
+    }
 
     if (!assets_open(game_dir, err, sizeof err)) {
         fprintf(stderr, "%s\n", err);

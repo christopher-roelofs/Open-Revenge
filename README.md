@@ -72,11 +72,17 @@ Put `rodent.exe` from Microsoft Entertainment Pack 2 in one of these folders:
 Or pass `--game DIR`. Only `rodent.exe` is needed. If it isn't found, the
 game says where it looked.
 
-Run it from the project folder, so it finds `data/`:
+Then run it:
 
 ```sh
 ./build/rodent
 ```
+
+The game finds its `data/` folder next to the program, one folder up (as
+with `build/rodent`), in the folder you run it from, or in
+`~/.local/share/rodentrecomp/data`. So a copy with `rodent`, `data/` and
+`rodent.exe` together in one folder works from anywhere, which is how a
+handheld port would ship it. `--data DIR` overrides the search.
 
 The title screen has the level pack, starting level, high scores and
 settings: speed, board size, colour or black-and-white, skin and fullscreen.
@@ -100,7 +106,7 @@ These override the saved settings for one run.
 | `--mono` | Black and white, as on a monochrome display |
 | `--fullscreen`, `--windowed` | Window mode |
 | `--skin DIR` | Replacement graphics (see *Modding*) |
-| `--data DIR` | Where `data/` is |
+| `--data DIR` | Where `data/` is (normally found on its own) |
 | `--dump-assets DIR` | Save the game's graphics as PNGs, then exit |
 
 `--help` lists everything, including the testing options.
