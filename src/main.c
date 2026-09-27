@@ -54,7 +54,7 @@ static void usage(const char *argv0)
     printf("  --ticks N       Run N timer ticks without waiting\n");
     printf("  --screenshot FILE  Save a PNG of the window and exit\n");
     printf("  --seed N        Fixed random seed\n");
-    printf("  --show-menu NAME   title, settings, pause, gameover, scores or name\n");
+    printf("  --show-menu NAME   title, settings, pause, gameover, scores, name or intro\n");
     printf("\nKeys: arrows/numpad/Home/End/PgUp/PgDn move, Esc menu, F2 new game, F3 pause\n");
     printf("Gamepad: d-pad or stick move (diagonals too), A select, B back, Start menu\n");
 }
@@ -152,6 +152,7 @@ int main(int argc, char *argv[])
         if (!strcmp(show_menu, "gameover")) menu_show(MENU_GAMEOVER);
         if (!strcmp(show_menu, "scores"))   menu_show(MENU_SCORES);
         if (!strcmp(show_menu, "name"))     { g.score = 12345; menu_game_over(7); }
+        if (!strcmp(show_menu, "intro"))    menu_show(MENU_INTRO);
     }
 
     render_frame();
@@ -173,6 +174,7 @@ int main(int argc, char *argv[])
     } else {
         bool running = true;
         uint32_t last_tick = platform_ticks();
+        int seen_mode = g.mode;
 
         while (running) {
             PlatformEvent ev;
@@ -204,6 +206,11 @@ int main(int argc, char *argv[])
                 if (before != modeDEMO && g.mode == modeDEMO)   /* ENDGAME -> DEMO */
                     menu_game_over(lvl + 1);
             }
+            /* a level is about to begin (a new game, the next level, or the
+             * level cheat): its intro card holds it until a key is pressed */
+            if (g.mode == modeBEGINLEVEL && seen_mode != modeBEGINLEVEL && menu_current() == MENU_NONE)
+                menu_level_start();
+            seen_mode = g.mode;
             render_frame();
             platform_delay(5);
         }

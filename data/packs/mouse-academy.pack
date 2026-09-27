@@ -8,7 +8,7 @@ description: Ten lessons in mousery, from one cat to everything at once.
 
 [level]
 name: First Squeak
-; Push blocks to pin the cat. Walls count as one side of the trap.
+hint: Push blocks to pin the cat. Walls count as one side of the trap.
 goal: cats
 batch: 0
 wave: 0
@@ -41,7 +41,7 @@ WWWWWWWWWWWWWWWWWWWWWWW
 
 [level]
 name: Cheese Trail
-; Eat all ten cheeses. Cats erase cheese they walk over, and a pushed block crushes it.
+hint: Eat all ten cheeses. Cats erase cheese they walk over, and a pushed block crushes it.
 goal: cheese
 batch: 0
 wave: 2
@@ -74,7 +74,7 @@ WWWWWWWWWWWWWWWWWWWWWWW
 
 [level]
 name: Double Trouble
-; Two cats: they only turn to cheese when both are stuck at the same moment.
+hint: Two cats: they only turn to cheese when both are stuck at the same moment.
 goal: cats
 batch: 0
 wave: 0
@@ -107,7 +107,7 @@ WWWWWWWWWWWWWWWWWWWWWWW
 
 [level]
 name: Sinkholes
-; Cats can't cross holes, so use them as trap walls. Blocks pushed in vanish, and you get stuck.
+hint: Cats can't cross holes, so use them as trap walls. Blocks pushed in vanish, and you get stuck.
 goal: cats
 batch: 0
 wave: 0
@@ -140,7 +140,7 @@ WWWWWWWWWWWWWWWWWWWWWWW
 
 [level]
 name: Minefield
-; Traps stop cats and blocks but kill you. The cheese hides among them.
+hint: Traps stop cats and blocks but kill you. The cheese hides among them.
 goal: cheese
 batch: 0
 wave: 2
@@ -173,7 +173,7 @@ WWWWWWWWWWWWWWWWWWWWWWW
 
 [level]
 name: Rush Hour
-; Two cats, and more every two minutes. Trap everything on the board to get out.
+hint: Two cats, and more every two minutes. Trap everything on the board to get out.
 goal: cats
 batch: 4
 wave: 3
@@ -206,7 +206,7 @@ WWWWWWWWWWWWWWWWWWWWWWW
 
 [level]
 name: Crossfire
-; Yarn balls roll in from the edges when you line up with them. Blocks are cover.
+hint: Yarn balls roll in from the edges when you line up with them. Blocks are cover.
 goal: cats
 batch: 0
 wave: 2
@@ -239,7 +239,7 @@ WWWWWWWWWWWWWWWWWWWWWWW
 
 [level]
 name: The Vault
-; Open each vault by pushing its door in, without crushing the cheese. The cats will follow you in.
+hint: Open each vault by pushing its door in, without crushing the cheese. The cats will follow you in.
 goal: cheese
 batch: 0
 wave: 3
@@ -272,7 +272,7 @@ WWWWWWWWWWWWWWWWWWWWWWW
 
 [level]
 name: Checkmate
-; A fresh checkerboard every time, with holes, traps and yarn.
+hint: A fresh checkerboard every time, with holes, traps and yarn.
 pattern: checker
 blocks: 100
 difficulty: 5
@@ -284,7 +284,7 @@ yarn: on
 
 [level]
 name: Revenge
-; Everything at once, under the original rule: survive, and trap them all after minute 25.
+hint: Everything at once, under the original rule: survive, and trap them all after minute 25.
 goal: clock
 batch: 4
 wave: 4

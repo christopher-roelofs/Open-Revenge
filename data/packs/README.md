@@ -38,7 +38,8 @@ W.....................W
 
 | Key | Default | Meaning |
 |---|---|---|
-| `name` | `Level N` | Shown to players. |
+| `name` | none | Shown on the level's intro card. |
+| `hint` | none | One or two sentences under the name on the intro card: what's new, or how to win. No `;` (it starts a comment). |
 | `pattern` | — | A generated room: `square`, `checker`, `scatter` or `checker-walls`. |
 | `grid:` | — | A fixed room. The 23 rows follow on the next lines. |
 | `blocks` | 100 | Generated rooms: % of obstacles that are pushable blocks rather than walls. |

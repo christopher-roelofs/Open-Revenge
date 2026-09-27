@@ -29,7 +29,8 @@ enum {
 };
 
 typedef struct LevelDef {
-    char name[64];
+    char name[64];      /* "" if the pack gives none */
+    char hint[200];     /* shown on the level intro card */
     int  pattern;
     int  blocks;        /* mplvlpery: % of obstacles that are pushable blocks */
     int  difficulty;    /* added to the level number in the density formulas (was lvl6) */

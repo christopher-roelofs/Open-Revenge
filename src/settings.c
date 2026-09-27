@@ -15,6 +15,7 @@ void settings_defaults(Settings *s)
 {
     memset(s, 0, sizeof *s);
     s->speed = 1;                             /* GetPrivateProfileInt("Skill", 1) */
+    s->intro = true;
     snprintf(s->pack, sizeof s->pack, "original.pack");
 }
 
@@ -51,6 +52,7 @@ void settings_load(Settings *s)
         else if (!strcmp(line, "large"))      s->large = !strcmp(val, "yes");
         else if (!strcmp(line, "mono"))       s->mono = !strcmp(val, "yes");
         else if (!strcmp(line, "fullscreen")) s->fullscreen = !strcmp(val, "yes");
+        else if (!strcmp(line, "intro"))      s->intro = !strcmp(val, "yes");
         else if (!strcmp(line, "level"))      { int v = atoi(val); if (v >= 1 && v <= 50) s->level = v - 1; }
         else if (!strcmp(line, "pack") && *val) snprintf(s->pack, sizeof s->pack, "%s", val);
         else if (!strcmp(line, "skin"))       snprintf(s->skin, sizeof s->skin, "%s", val);
@@ -80,8 +82,8 @@ bool settings_save(const Settings *s)
         return false;
     }
     fprintf(f, "; Rodent's Revenge settings (written by the game)\n");
-    fprintf(f, "speed=%d\nlarge=%s\nmono=%s\nfullscreen=%s\nlevel=%d\npack=%s\nskin=%s\nname=%s\n",
-            s->speed, yes_no(s->large), yes_no(s->mono), yes_no(s->fullscreen),
+    fprintf(f, "speed=%d\nlarge=%s\nmono=%s\nfullscreen=%s\nintro=%s\nlevel=%d\npack=%s\nskin=%s\nname=%s\n",
+            s->speed, yes_no(s->large), yes_no(s->mono), yes_no(s->fullscreen), yes_no(s->intro),
             s->level + 1, s->pack, s->skin, s->name);
     fclose(f);
     return true;

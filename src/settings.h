@@ -13,6 +13,7 @@ typedef struct {
     bool large;           /* 16x16 tiles */
     bool mono;            /* black and white */
     bool fullscreen;
+    bool intro;           /* level intro card */
     int  level;           /* starting level, 0-based */
     char pack[512];       /* file in DATA/packs, or a path */
     char skin[512];       /* folder in DATA/skins, or a path; "" = none */

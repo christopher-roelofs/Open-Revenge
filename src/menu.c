@@ -17,7 +17,7 @@
 enum {
     itemPLAY, itemPACK, itemLEVEL, itemSETTINGS, itemQUIT,
     itemSPEED, itemSIZE, itemDISPLAY, itemSKIN, itemFULLSCREEN, itemBACK,
-    itemRESUME, itemTO_TITLE, itemAGAIN, itemSCORES, itemCLEAR
+    itemRESUME, itemTO_TITLE, itemAGAIN, itemSCORES, itemCLEAR, itemINTRO
 };
 
 typedef struct { int id; const char *label; char value[80]; } Item;
@@ -190,6 +190,11 @@ void menu_show(MenuId id)
     sel = 0;
 }
 
+void menu_level_start(void)
+{
+    if (S->intro) menu_show(MENU_INTRO);
+}
+
 void menu_game_over(int level_reached)
 {
     scores_load(S->pack, &table);
@@ -284,6 +289,7 @@ static int items(Item *it)
         i = find(skins, nskin, S->skin);
         snprintf(ITEM(itemSKIN, "Skin")->value, sizeof it->value, "%.79s", i >= 0 ? skins[i].name : S->skin);
         snprintf(ITEM(itemFULLSCREEN, "Fullscreen")->value, sizeof it->value, "%s", S->fullscreen ? "On" : "Off");
+        snprintf(ITEM(itemINTRO, "Level intro")->value, sizeof it->value, "%s", S->intro ? "On" : "Off");
         ITEM(itemBACK, "Back");
         break;
     case MENU_PAUSE:
@@ -301,6 +307,7 @@ static int items(Item *it)
         if (table.n) ITEM(itemCLEAR, confirm_clear ? "Really clear them?" : "Clear scores");
         break;
     case MENU_NAME:
+    case MENU_INTRO:
     case MENU_NONE:
         break;
     }
@@ -351,6 +358,9 @@ static void change(int id, int d)
     case itemFULLSCREEN:
         S->fullscreen = !S->fullscreen;
         platform_set_fullscreen(S->fullscreen);
+        break;
+    case itemINTRO:
+        S->intro = !S->intro;
         break;
     default:
         return;
@@ -403,6 +413,10 @@ bool menu_key(int vk)
         name_key(vk);
         return true;
     }
+    if (menu == MENU_INTRO) {                 /* any key or button starts the level */
+        menu = MENU_NONE;
+        return true;
+    }
     if ((n = items(it)) == 0) return true;
     sel = wrap(sel, n);
     switch (vk) {
@@ -443,6 +457,29 @@ static const char *fit(int font, const char *s, int maxw)
 static void draw_centered(int font, const char *s, int x, int w, int y, uint32_t rgb)
 {
     platform_draw_text(font, s, x + (w - platform_text_width(font, s)) / 2, y, rgb);
+}
+
+/* Splits text into lines no wider than maxw (at spaces); returns how many */
+static int wrap_text(const char *text, int maxw, char lines[][96], int max)
+{
+    int n = 0;
+    while (*text == ' ') text++;
+    while (*text && n < max) {
+        size_t len = strlen(text), take = len, brk = 0;
+        char buf[96];
+        for (size_t k = 1; k <= len && k < sizeof buf; k++) {
+            memcpy(buf, text, k);
+            buf[k] = '\0';
+            if (platform_text_width(FONT_NORMAL, buf) > maxw) { take = brk ? brk : k - 1; break; }
+            if (text[k] == ' ' || text[k] == '\0') brk = k;
+            take = k;
+        }
+        if (take == 0) take = 1;
+        snprintf(lines[n++], 96, "%.*s", (int)take, text);
+        text += take;
+        while (*text == ' ') text++;
+    }
+    return n;
 }
 
 static void format_score(char *out, size_t n, long v)   /* Format$(v, "##,##0") */
@@ -497,6 +534,23 @@ static int body(bool draw, int x, int y, int w)
         }
         return 2 * hn + 6 + platform_text_height(FONT_BIG) + 10 + 2 * hn + 6;
 
+    case MENU_INTRO: {
+        const LevelDef *lv = g.lv;
+        char lines[8][96];
+        int nl = wrap_text(lv->hint, w - 16, lines, 8);
+        h = (lv->name[0] ? platform_text_height(FONT_BIG) + 4 : 0) + nl * hn + (nl ? 6 : 0) + hn + 6;
+        if (!draw) return h;
+        if (lv->name[0]) {
+            draw_centered(FONT_BIG, fit(FONT_BIG, lv->name, w - 12), x, w, y, 0x000000);
+            y += platform_text_height(FONT_BIG) + 4;
+        }
+        for (i = 0; i < nl; i++, y += hn)
+            draw_centered(FONT_NORMAL, lines[i], x, w, y, 0x000000);
+        if (nl) y += 6;
+        draw_centered(FONT_NORMAL, "Press any key", x, w, y, 0x000000);
+        return h;
+    }
+
     case MENU_SCORES: {
         int idx = find(packs, npack, S->pack);
         const char *pname = idx >= 0 ? packs[idx].name : S->pack;
@@ -540,6 +594,7 @@ void menu_paint(void)
     int hb = platform_text_height(FONT_BIG), hn = platform_text_height(FONT_NORMAL);
     int tw = platform_tile_width(), row = hn + 4, pad = 6;
     const char *title;
+    static char level_title[24];
 
     switch (menu) {
     case MENU_TITLE:    title = "Rodent's Revenge"; break;
@@ -548,6 +603,10 @@ void menu_paint(void)
     case MENU_GAMEOVER: title = "Game Over"; break;
     case MENU_NAME:     title = "High Score"; break;
     case MENU_SCORES:   title = "Hall of Fame"; break;   /* WEPFAME's caption */
+    case MENU_INTRO:
+        snprintf(level_title, sizeof level_title, "Level %d", g.lvl + 1);
+        title = level_title;
+        break;
     default:            return;
     }
 

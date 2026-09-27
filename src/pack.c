@@ -104,7 +104,7 @@ static bool read_grid(Reader *r, LevelDef *lv)
 static bool finish_level(Reader *r, LevelDef *lv, bool fPattern)
 {
     if (!fPattern && lv->pattern != patGRID)
-        return fail(r, "level has neither a pattern nor a grid", lv->name);
+        return fail(r, "level has neither a pattern nor a grid", NULL);
     if (lv->goal == goalCHEESE) {
         int x, y, c = 0;
         if (lv->pattern == patGRID)
@@ -112,10 +112,10 @@ static bool finish_level(Reader *r, LevelDef *lv, bool fPattern)
                 for (x = 0; x < cFieldC; x++)
                     c += lv->grid[y][x] == chCHEESE;
         if (c == 0)
-            return fail(r, "goal: cheese needs a grid with at least one cheese (C)", lv->name);
+            return fail(r, "goal: cheese needs a grid with at least one cheese (C)", NULL);
     }
     if (lv->goal == goalCATS && lv->batch == 0 && !(lv->pattern == patGRID && lv->ccat > 0))
-        return fail(r, "goal: cats needs cats at the start: batch above 0 or a K in the grid", lv->name);
+        return fail(r, "goal: cats needs cats at the start: batch above 0 or a K in the grid", NULL);
     return true;
 }
 
@@ -143,7 +143,6 @@ bool pack_load(Pack *pack, const char *path)
             pack->levels = levels;
             lv = &pack->levels[pack->clevel++];
             memset(lv, 0, sizeof *lv);
-            snprintf(lv->name, sizeof lv->name, "Level %d", pack->clevel);
             lv->pattern = -1;
             lv->blocks = 100;
             lv->batch = 3; lv->wave = 3; lv->interval = 5;
@@ -170,6 +169,8 @@ bool pack_load(Pack *pack, const char *path)
         }
         if (!strcmp(key, "name")) {
             copy_str(lv->name, sizeof lv->name, val);
+        } else if (!strcmp(key, "hint")) {
+            copy_str(lv->hint, sizeof lv->hint, val);
         } else if (!strcmp(key, "pattern")) {
             if (lv->pattern == patGRID) { ok = fail(&r, "a level has either a pattern or a grid", NULL); break; }
             if      (!strcmp(val, "square"))        lv->pattern = patSQUARE;

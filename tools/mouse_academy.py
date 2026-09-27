@@ -245,7 +245,8 @@ def main():
     ]
     bad = False
     for name, build, desc, keys in LEVELS:
-        out += ["", "[level]", f"name: {name}", f"; {desc}"]
+        assert ";" not in desc and len(desc) < 200, name   # ';' starts a comment
+        out += ["", "[level]", f"name: {name}", f"hint: {desc}"]
         out += [f"{k}: {v}" for k, v in keys.items()]
         if build:
             g = build()

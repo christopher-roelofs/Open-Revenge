@@ -120,6 +120,26 @@ int main(void)
     CHECK(r.speed == s.speed && r.large == s.large && r.mono == s.mono && r.level == s.level &&
           !strcmp(r.pack, s.pack) && !strcmp(r.skin, s.skin), "settings.ini reloads identically");
 
+    /* level intro */
+    Pack ma;
+    CHECK(pack_load(&ma, "data/packs/mouse-academy.pack") && !strcmp(ma.levels[3].name, "Sinkholes") &&
+          !strncmp(ma.levels[3].hint, "Cats can't cross holes", 22), "hint: parsed");
+    pack_free(&ma);
+    CHECK(s.intro, "level intro is on by default");
+    menu_show(MENU_NONE);
+    menu_level_start();
+    CHECK(menu_current() == MENU_INTRO, "a level start shows the intro card");
+    KEYS(KEY_NUM1 + 5);
+    CHECK(menu_current() == MENU_NONE, "any key or button starts the level");
+    menu_show(MENU_SETTINGS);
+    for (int i = 0; i < 5; i++) KEYS(KEY_DOWN);
+    KEYS(KEY_RIGHT);
+    CHECK(!s.intro && saved_has("intro=no"), "Level intro can be turned off");
+    menu_show(MENU_NONE);
+    menu_level_start();
+    CHECK(menu_current() == MENU_NONE, "and then no card appears");
+    s.intro = true;
+
     /* high scores */
     ScoreTable t;
     menu_show(MENU_TITLE);
