@@ -76,11 +76,11 @@ void platform_delay(uint32_t ms);
 #define KEY_RETURN  0x0D     /* also gamepad A */
 #define KEY_BACK    0x08     /* Backspace, gamepad B */
 
-typedef enum { EVENT_NONE, EVENT_QUIT, EVENT_KEYDOWN } EventType;
+typedef enum { EVENT_NONE, EVENT_QUIT, EVENT_KEYDOWN, EVENT_TEXT } EventType;
 
 typedef struct {
     EventType type;
-    int key;       /* VK code */
+    int key;       /* VK code, or the character for EVENT_TEXT */
     int shift;     /* 1 = Shift, 2 = Ctrl (VB Shift argument) */
 } PlatformEvent;
 

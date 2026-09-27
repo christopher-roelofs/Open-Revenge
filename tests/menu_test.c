@@ -12,6 +12,7 @@
 #include "menu.h"
 #include "pack.h"
 #include "settings.h"
+#include "scores.h"
 #include <SDL.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -58,6 +59,7 @@ int main(void)
 
     if (!mkdtemp(tmp)) return 1;
     setenv("XDG_CONFIG_HOME", tmp, 1);
+    setenv("XDG_DATA_HOME", tmp, 1);
     if (!assets_open(NULL, err, sizeof err)) { printf("%s\n", err); return 1; }
     settings_defaults(&s);
     CHECK(menu_init(&s, &pack, "data"), "menu_init loads the default pack");
@@ -81,8 +83,9 @@ int main(void)
     KEYS(KEY_RIGHT);
     CHECK(s.level == 0 && saved_has("level=1"), "and back to 1, saved");
 
-    /* settings: Speed, Board size, Display, Skin, Fullscreen, Back */
-    KEYS(KEY_DOWN, KEY_RETURN);
+    /* settings: Speed, Board size, Display, Skin, Fullscreen, Back
+     * (title: Play, Levels, Start at level, High scores, Settings, Quit) */
+    KEYS(KEY_DOWN, KEY_DOWN, KEY_RETURN);
     CHECK(menu_current() == MENU_SETTINGS, "Enter on Settings opens it");
     KEYS(KEY_RIGHT, KEY_RIGHT, KEY_RIGHT);
     CHECK(s.speed == 4 && g.timeBase == 180 && saved_has("speed=4"), "speed to Blazing (not clamped to 0-3)");
@@ -96,7 +99,7 @@ int main(void)
     CHECK(menu_current() == MENU_TITLE, "Esc goes back to the title");
 
     /* play, pause, quit to title */
-    KEYS(KEY_UP, KEY_UP, KEY_UP);
+    KEYS(KEY_UP, KEY_UP, KEY_UP, KEY_UP);
     KEYS(KEY_RETURN);
     CHECK(menu_current() == MENU_NONE && g.mode == modeBEGINGAME, "Play starts a game");
     for (int i = 0; i < 5; i++) timer_tick();
@@ -116,6 +119,53 @@ int main(void)
     settings_load(&r);
     CHECK(r.speed == s.speed && r.large == s.large && r.mono == s.mono && r.level == s.level &&
           !strcmp(r.pack, s.pack) && !strcmp(r.skin, s.skin), "settings.ini reloads identically");
+
+    /* high scores */
+    ScoreTable t;
+    menu_show(MENU_TITLE);
+    g.score = 5000;
+    menu_game_over(3);
+    CHECK(menu_current() == MENU_NAME, "first score of a pack asks for a name");
+    menu_text('B'); menu_text('o'); menu_text('b'); menu_text(' ');
+    KEYS(KEY_RETURN);
+    scores_load(s.pack, &t);
+    CHECK(menu_current() == MENU_SCORES && t.n == 1 && !strcmp(t.s[0].name, "Bob") &&
+          t.s[0].score == 5000 && t.s[0].level == 3 && t.s[0].speed == s.speed, "typed name saved (trailing space trimmed)");
+    CHECK(!strcmp(s.name, "Bob") && saved_has("name=Bob"), "name remembered as the default");
+    KEYS(KEY_RETURN);
+    CHECK(menu_current() == MENU_GAMEOVER, "Back from the table goes to game over");
+
+    g.score = 7000;
+    menu_game_over(4);
+    KEYS(KEY_BACK, KEY_BACK, KEY_BACK, KEY_NUM1 + 7, KEY_NUM1 + 7, KEY_NUM1 + 5, KEY_NUM1 + 1, KEY_NUM1 + 1);
+    KEYS(KEY_RETURN);
+    scores_load(s.pack, &t);
+    CHECK(t.n == 2 && !strcmp(t.s[0].name, "BY") && t.s[0].score == 7000, "gamepad entry: B deletes, up/down letters, right adds one");
+
+    for (int i = 0; i < 10; i++) {
+        Score e = { .score = 100 + i, .level = 1 };
+        snprintf(e.name, sizeof e.name, "Filler%d", i);
+        scores_add(s.pack, &e);
+    }
+    scores_load(s.pack, &t);
+    CHECK(t.n == SCORE_MAX && t.s[0].score == 7000 && t.s[9].score == 102, "table keeps the best 10");
+    g.score = 50;
+    menu_game_over(1);
+    CHECK(menu_current() == MENU_GAMEOVER, "a score below the table skips the name");
+    g.score = 0;
+    menu_game_over(1);
+    CHECK(menu_current() == MENU_GAMEOVER, "a score of 0 never counts");
+    ScoreTable other;
+    scores_load("gophers-grievance.pack", &other);
+    CHECK(other.n == 0, "tables are per pack");
+
+    menu_show(MENU_SCORES);
+    KEYS(KEY_DOWN, KEY_RETURN);
+    scores_load(s.pack, &t);
+    CHECK(t.n == SCORE_MAX, "Clear asks first");
+    KEYS(KEY_RETURN);
+    scores_load(s.pack, &t);
+    CHECK(t.n == 0, "second press clears the pack's table");
 
     /* gamepad: a virtual controller */
     int idx = SDL_JoystickAttachVirtual(SDL_JOYSTICK_TYPE_GAMECONTROLLER, SDL_CONTROLLER_AXIS_MAX,
@@ -159,6 +209,7 @@ int main(void)
     menu_free();
     assets_close();
     remove(settings_path());
+    remove(scores_path());
     char dir[1100];
     snprintf(dir, sizeof dir, "%s/rodentrecomp", tmp);
     rmdir(dir);

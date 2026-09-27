@@ -127,6 +127,7 @@ bool platform_init(const char *data_dir, bool large_board, bool mono, int cols, 
         SDL_Quit();
         return false;
     }
+    SDL_StartTextInput();
     if (SDL_InitSubSystem(SDL_INIT_GAMECONTROLLER) != 0)
         fprintf(stderr, "No gamepad support: %s\n", SDL_GetError());
     snprintf(g_data_dir, sizeof g_data_dir, "%s", data_dir);
@@ -508,6 +509,16 @@ bool platform_poll_event(PlatformEvent *event)
                 event->shift = 0;
                 return true;
             }
+        }
+        if (ev.type == SDL_TEXTINPUT) {           /* typing a high-score name */
+            unsigned char c = (unsigned char)ev.text.text[0];
+            if (c >= 32 && c < 127 && ev.text.text[1] == '\0') {
+                event->type = EVENT_TEXT;
+                event->key = c;
+                event->shift = 0;
+                return true;
+            }
+            continue;
         }
         if (ev.type == SDL_KEYDOWN) {
             int vk = sdl_key_to_vk(ev.key.keysym.sym);

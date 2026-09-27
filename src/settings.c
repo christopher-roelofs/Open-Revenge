@@ -54,6 +54,7 @@ void settings_load(Settings *s)
         else if (!strcmp(line, "level"))      { int v = atoi(val); if (v >= 1 && v <= 50) s->level = v - 1; }
         else if (!strcmp(line, "pack") && *val) snprintf(s->pack, sizeof s->pack, "%s", val);
         else if (!strcmp(line, "skin"))       snprintf(s->skin, sizeof s->skin, "%s", val);
+        else if (!strcmp(line, "name"))       snprintf(s->name, sizeof s->name, "%.15s", val);
     }
     fclose(f);
 }
@@ -79,9 +80,9 @@ bool settings_save(const Settings *s)
         return false;
     }
     fprintf(f, "; Rodent's Revenge settings (written by the game)\n");
-    fprintf(f, "speed=%d\nlarge=%s\nmono=%s\nfullscreen=%s\nlevel=%d\npack=%s\nskin=%s\n",
+    fprintf(f, "speed=%d\nlarge=%s\nmono=%s\nfullscreen=%s\nlevel=%d\npack=%s\nskin=%s\nname=%s\n",
             s->speed, yes_no(s->large), yes_no(s->mono), yes_no(s->fullscreen),
-            s->level + 1, s->pack, s->skin);
+            s->level + 1, s->pack, s->skin, s->name);
     fclose(f);
     return true;
 }

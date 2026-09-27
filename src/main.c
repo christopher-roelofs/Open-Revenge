@@ -54,7 +54,7 @@ static void usage(const char *argv0)
     printf("  --ticks N       Run N timer ticks without waiting\n");
     printf("  --screenshot FILE  Save a PNG of the window and exit\n");
     printf("  --seed N        Fixed random seed\n");
-    printf("  --show-menu NAME   title, settings, pause or gameover (with --screenshot)\n");
+    printf("  --show-menu NAME   title, settings, pause, gameover, scores or name\n");
     printf("\nKeys: arrows/numpad/Home/End/PgUp/PgDn move, Esc menu, F2 new game, F3 pause\n");
     printf("Gamepad: d-pad or stick move (diagonals too), A select, B back, Start menu\n");
 }
@@ -95,7 +95,7 @@ int main(int argc, char *argv[])
         else { fprintf(stderr, "Unknown option %s (try --help)\n", a); return 1; }
     }
     bool headless = ticks >= 0 || screenshot_path;
-    if (show_menu && (!strcmp(show_menu, "title") || !strcmp(show_menu, "settings")))
+    if (show_menu && strcmp(show_menu, "pause"))  /* only the pause menu needs a game */
         autostart = false;
 
     /* saved settings, then the command line on top (tests use defaults only) */
@@ -150,6 +150,8 @@ int main(int argc, char *argv[])
         if (!strcmp(show_menu, "settings")) menu_show(MENU_SETTINGS);
         if (!strcmp(show_menu, "pause"))    menu_show(MENU_PAUSE);
         if (!strcmp(show_menu, "gameover")) menu_show(MENU_GAMEOVER);
+        if (!strcmp(show_menu, "scores"))   menu_show(MENU_SCORES);
+        if (!strcmp(show_menu, "name"))     { g.score = 12345; menu_game_over(7); }
     }
 
     render_frame();
@@ -177,6 +179,8 @@ int main(int argc, char *argv[])
             while (running && platform_poll_event(&ev)) {
                 if (ev.type == EVENT_QUIT) {
                     running = false;
+                } else if (ev.type == EVENT_TEXT) {
+                    menu_text(ev.key);
                 } else if (ev.type == EVENT_KEYDOWN) {
                     if (menu_current() != MENU_NONE) running = menu_key(ev.key);
                     else if (ev.key == KEY_ESCAPE)   menu_show(MENU_PAUSE);
@@ -194,11 +198,11 @@ int main(int argc, char *argv[])
             if (menu_current() != MENU_NONE && g.mode != modeDEMO) {
                 last_tick = now;
             } else if (now - last_tick >= (uint32_t)interval) {
-                int before = g.mode;
+                int before = g.mode, lvl = g.lvl;
                 last_tick = now;
                 timer_tick();
                 if (before != modeDEMO && g.mode == modeDEMO)   /* ENDGAME -> DEMO */
-                    menu_show(MENU_GAMEOVER);
+                    menu_game_over(lvl + 1);
             }
             render_frame();
             platform_delay(5);

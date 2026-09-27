@@ -12,6 +12,7 @@ add_executable(rodent
     src/main.c
     src/menu.c
     src/settings.c
+    src/scores.c
     src/platform.c
     src/field.c
     src/game.c
@@ -56,6 +57,7 @@ add_executable(menu_test
     tests/menu_test.c
     src/menu.c
     src/settings.c
+    src/scores.c
     src/platform.c
     src/field.c
     src/game.c

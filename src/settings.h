@@ -16,6 +16,7 @@ typedef struct {
     int  level;           /* starting level, 0-based */
     char pack[512];       /* file in DATA/packs, or a path */
     char skin[512];       /* folder in DATA/skins, or a path; "" = none */
+    char name[16];        /* last high-score name (EntPack.ini DefName) */
 } Settings;
 
 void settings_defaults(Settings *s);
