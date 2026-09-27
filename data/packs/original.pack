@@ -1,0 +1,62 @@
+; The six room types of the 1991 game (RODENT2.FRM LevelDraw and the
+; mplvl* tables).  They repeat in order, so level 7 is room 1 again,
+; with more holes, traps and speed from the level number.
+
+name: Rodent's Revenge
+author: Christopher Lee Fraley
+year: 1991
+description: The original levels, generated fresh every time you play.
+
+[level]
+name: Block Square
+pattern: square
+blocks: 100
+difficulty: 0
+batch: 3
+wave: 3
+interval: 5
+
+[level]
+name: Walled Square
+pattern: square
+blocks: 90
+difficulty: 1
+batch: 3
+wave: 3
+interval: 4
+
+[level]
+name: Scattered
+pattern: scatter
+blocks: 87
+difficulty: 2
+batch: 6
+wave: 4
+interval: 5
+
+[level]
+name: Checkerboard
+pattern: checker
+blocks: 100
+difficulty: 3
+batch: 2
+wave: 2
+interval: 2
+
+[level]
+name: Rubble
+pattern: scatter
+blocks: 50
+difficulty: 4
+batch: 4
+wave: 3
+interval: 3
+
+[level]
+name: Wall Grid
+pattern: checker-walls
+blocks: 50
+difficulty: 5
+batch: 4
+wave: 3
+interval: 4

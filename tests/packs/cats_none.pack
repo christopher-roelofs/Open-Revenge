@@ -1,0 +1,5 @@
+name: t
+[level]
+goal: cats
+batch: 0
+pattern: square

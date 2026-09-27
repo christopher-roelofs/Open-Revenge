@@ -1,0 +1,30 @@
+# The original game: every player supplies their own copy.
+# Never commit Microsoft's files.
+rodents_revenge/
+*.exe
+*.EXE
+*.dll
+*.DLL
+*.hlp
+*.HLP
+
+# Disassembly / decompilation of the original binaries
+decompiled/
+tools/vbdis/out/
+tools/vbdis/seg2.asm
+
+# Screenshots of the original game
+docs/screenshots/
+
+# Extracted assets (--dump-assets / extract_assets.py output)
+assets/
+
+# Ghidra project files
+ghidra_project/
+
+# Python
+__pycache__/
+*.pyc
+
+# Build output
+build/
